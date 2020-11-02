@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - "11.0"
+branches:
+  only:
+    - master
+before_script:
+  - npm install -g @vue/cli
+  - npm install --save-dev ftp-deploy 
+after_success:
+  - node deploy-script.js
+script: npm run build

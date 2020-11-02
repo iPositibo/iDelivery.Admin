@@ -1,0 +1,100 @@
+<template v-slot:top>
+    <v-app id="inspire">
+        <div class="text-center">
+            <v-dialog v-model="errorDialog" width="500" transition="slide-y-reverse-transition">
+                <v-card>
+                    <v-card-title class="headline red lighten-2">
+                        <strong> Whoops, that's an error!</strong> <v-spacer></v-spacer> <v-icon> mdi-alert-box </v-icon>
+                    </v-card-title>
+
+                    <v-card-text v-if="errorDialog" v-text="alertInfo.error.response.data">
+                    </v-card-text>
+
+                    <v-divider></v-divider>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="primary" text @click="errorDialog = false">
+                            CLOSE
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </div>
+        <RoleTable :tableHeaders="headers" :roleTable="tableData"></RoleTable>
+        <v-dialog v-model="loading" fullscreen>
+            <v-container fluid fill-height style="background-color: rgba(255, 255, 255, 0.5);">
+                <v-layout justify-center align-center>
+                    <v-progress-circular indeterminate color="primary">
+                    </v-progress-circular>
+                </v-layout>
+            </v-container>
+        </v-dialog>
+    </v-app>
+</template>
+
+<script>
+    import RoleService from '../roles/roles.service'
+    import RoleTable from '../roles/roles-table'
+
+    export default {
+        name: "RoleComponent",
+        components: {
+            RoleTable,
+        },
+        data: () => ({
+            headers: [],
+            tableData: [],
+            alertInfo: [],
+            errorDialog: false,
+            interval: {},
+            value: 0,
+            loading: false
+        }),
+        beforeDestroy() {
+            clearInterval(this.interval)
+        },
+        mounted() {
+            this.interval = setInterval(() => {
+                if (this.value === 100) {
+                    return (this.value = 0)
+                }
+                this.value += 10
+            }, 1000)
+        },
+        created() {
+            const self = this
+            self.loading = true
+            this.headers = [{
+                            text: 'Id',
+                            align: 'start',
+                            value: 'roleId',
+                        },
+                        {
+                            text: 'Role',
+                            value: 'roleName'
+                        },
+                        {
+                            text: 'Actions',
+                            value: 'actions',
+                            sortable: false
+                        },
+                    ]
+
+            RoleService.getAllRoles()
+                .then(response => {
+                self.tableData = response.data
+                self.errorDialog = false
+                self.loading = false
+            })
+            .catch(function (error) {
+                self.alertInfo = {success: false, error }
+                self.loading = false
+                self.errorDialog = true
+            })
+        }
+    }
+</script>
+
+<style scoped>
+</style>
